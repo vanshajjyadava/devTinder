@@ -2,21 +2,19 @@ const express = require("express");
 
 const app = express();
 
-app.get("/user", (req, res) => {
+// '?' means that the letter "b" can exist or not.
+app.get(/ab?c/, (req, res) => {
   res.send({ firstName: "Vansh", lastName: "Yadav" });
 });
 
-app.post("/user", (req, res) => {
-  // Saving data to the database..
-  res.send("Data successfully saved to the database.");
+// '+' means that the letter "b" can repeat inself multiple times.
+app.get(/ab+c/, (req, res) => {
+  res.send({ firstName: "Vansh", lastName: "Yadav" });
 });
 
-app.delete("/user", (req, res) => {
-  res.send("Data deleted successfully.");
-});
-
-app.use("/test", (req, res) => {
-  res.send("Hello from the server.");
+// '*' means that you could write anything in b/w ab and cd, it will work.
+app.get("/ab*cd/", (req, res) => {
+  res.send({ firstName: "Vansh", lastName: "Yadav" });
 });
 
 app.listen(3000, () => {
