@@ -30,6 +30,18 @@ app.get("/admin/deleteUser", (req, res) => {
   res.send("User deleted.");
 });
 
+// Handling ERRORS using '.use'
+app.use("/", (err, req, res, next) => {
+  if (err) {
+    console.log(err);
+    res.status(500).send("Something went wrong...");
+  }
+});
+// Creating an error...
+app.get("/getData", (req, res) => {
+  throw new Error("ERROR !!");
+});
+
 app.listen(3000, () => {
   console.log("Server is successfully listening on port no. 3000");
 });
