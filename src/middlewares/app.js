@@ -3,11 +3,11 @@ const express = require("express");
 const app = express();
 
 // Handling ADMIN Auth middleware for all the incoming requests such as GET, POST, PUT, PATCH or DELETE..
-const { adminAuth } = require("./middlewares/admin_auth");
+const { adminAuth } = require("./admin_auth");
 app.use("/admin", adminAuth);
 
 // Handling ADMIN Auth middleware for all the incoming requests such as GET, POST, PUT, PATCH or DELETE..
-const { userAuth } = require("./middlewares/user_auth");
+const { userAuth } = require("./user_auth");
 app.use("/user", userAuth);
 
 app.get("/user/getUserData", (req, res) => {
