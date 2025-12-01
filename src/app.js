@@ -42,6 +42,26 @@ app.get("/feed", async (req, res) => {
   }
 });
 
+// Id API - get user by id.
+app.get("/userbyid", async (req, res) => {
+  const userID = req.body.id;
+
+  try {
+    const user = await User.findById(userID);
+
+    if (!user) {
+      return res.status(404).send("User not found !");
+    }
+
+    res.send(user);
+
+  } catch (err) {
+    res.status(400).send("Invalid ID format !");
+  }
+});
+
+
+
 connectDb()
   .then(() => {
     console.log("Database connected successfully.");
