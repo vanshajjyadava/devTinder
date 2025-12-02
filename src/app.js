@@ -12,6 +12,16 @@ app.post("/signup", async (req, res, next) => {
   // Creating a new instance of the user model.
   const user = new User(req.body);
   try {
+    const nameRegex = /^[A-Za-z\s]+$/;
+
+    if (!nameRegex.test(req.body.firstName)) {
+      throw new Error("First name contains invalid characters");
+    }
+
+    if (!nameRegex.test(req.body.lastName)) {
+      throw new Error(400).send("Last name contains invalid characters");
+    }
+
     await user.save();
     res.send("User added successfully.");
   } catch (err) {
