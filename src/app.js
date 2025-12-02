@@ -77,12 +77,23 @@ app.delete("/user", async (req, res) => {
 });
 
 // PATCH API - updates the user data in the database.
-app.patch("/user", async (req, res) => {
-  const userId = req.body.id;
+app.patch("/user/:_id", async (req, res) => {
+  const userId = req.params?._id;
   const userData = req.body;
   console.log(userData);
 
   try {
+    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
+
+    const isUpdateAllowed = Object.keys(userData).every((k) =>
+      ALLOWED_UPDATES.includes(k)
+    );
+
+    if (!isUpdateAllowed) throw new Error("Update not allowed");
+
+    if (userData?.skills.length > 5)
+      throw new Error("There can only be 5 skills at max.");
+
     const user = await User.findByIdAndUpdate(userId, userData, {
       // options..
       runValidators: true,
