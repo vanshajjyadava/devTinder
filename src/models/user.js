@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
@@ -21,12 +22,21 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      validate(value) {
+        if (!validator.isEmail(value)) throw new Error("Invalid email id !");
+      },
     },
     password: {
       type: String,
       required: true,
       trim: true,
-      minLength: 8,
+      validate(value) {
+        if (!validator.isStrongPassword(value))
+          throw new Error(
+            "Weak password detected! TIP : Password must contain minimum length of 8, a lowercase letter, an uppercase letter and a special character. Entered password : " +
+              value
+          );
+      },
     },
     age: {
       type: Number,
@@ -40,7 +50,7 @@ const userSchema = new mongoose.Schema(
       // Custom Validation Function.
       validate(value) {
         if (!["male", "female", "others"].includes(value)) {
-          throw new Error("Gender is not valid.");
+          throw new Error("Gender is not valid !");
         }
       },
     },
@@ -48,6 +58,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://www.pnrao.com/wp-content/uploads/2023/06/dummy-user-male.jpg",
+      validate(value) {
+        if (!validator.isURL(value)) throw new Error("Invalid image URL !");
+      },
     },
     about: {
       type: String,

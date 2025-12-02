@@ -25,7 +25,7 @@ app.post("/signup", async (req, res, next) => {
     await user.save();
     res.send("User added successfully.");
   } catch (err) {
-    res.status(400).send("Error adding the user." + err.message);
+    res.status(400).send("Error adding the user. " + err.message);
   }
 });
 
@@ -93,7 +93,14 @@ app.patch("/user/:_id", async (req, res) => {
   console.log(userData);
 
   try {
-    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
+    const ALLOWED_UPDATES = [
+      "password",
+      "photoUrl",
+      "about",
+      "gender",
+      "age",
+      "skills",
+    ];
 
     const isUpdateAllowed = Object.keys(userData).every((k) =>
       ALLOWED_UPDATES.includes(k)
@@ -101,7 +108,7 @@ app.patch("/user/:_id", async (req, res) => {
 
     if (!isUpdateAllowed) throw new Error("Update not allowed");
 
-    if (userData?.skills.length > 5)
+    if (userData?.skills?.length > 5)
       throw new Error("There can only be 5 skills at max.");
 
     const user = await User.findByIdAndUpdate(userId, userData, {
