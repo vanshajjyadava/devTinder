@@ -3,11 +3,17 @@ const connectDb = require("./config/database");
 const User = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/user_auth");
 
 const app = express();
 
 // Converts JSON into JS object.
 app.use(express.json());
+
+// Used to parse cookies.
+app.use(cookieParser());
 
 // POST API - adds user to the database.
 app.post("/signup", async (req, res, next) => {
@@ -47,6 +53,7 @@ app.post("/signup", async (req, res, next) => {
   }
 });
 
+// GET API - logs in the user.
 app.post("/login", async (req, res, next) => {
   try {
     const { emailId, password } = req.body;
@@ -54,12 +61,14 @@ app.post("/login", async (req, res, next) => {
     const user = await User.findOne({ emailId: emailId });
     if (!user) throw new Error("Invalid credentials !");
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    // console.log(password);
-    // console.log(user.password);
+    const isPasswordValid = await user.validatePassword(password);
 
     if (isPasswordValid) {
-      res.send("User login successful.");
+      // Create a JWT..
+      const token = await user.getJWT();
+
+      res.cookie("token", token);
+      res.send("Login successful.");
     } else {
       throw new Error("Invalid credentials !");
     }
@@ -68,97 +77,25 @@ app.post("/login", async (req, res, next) => {
   }
 });
 
-// GET API - gets user from database using email.
-app.get("/user", async (req, res) => {
-  const userEmail = req.body.emailId;
+app.get("/profile", userAuth, async (req, res, next) => {
   try {
-    const user = await User.findOne({ emailId: userEmail });
-    if (user.length === 0) res.status(404).send("User not found");
-    else {
-      res.send(user);
-    }
-  } catch (err) {
-    res.status(400).send("Something went wrong !");
-  }
-});
-
-// GET API - gets all the data from the database.
-app.get("/feed", async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.send(users);
-  } catch (err) {
-    res.status(400).send("Something went wrong !");
-  }
-});
-
-// GET API - get user by id from the database.
-app.get("/userbyid", async (req, res) => {
-  const userID = req.body.id;
-
-  try {
-    const user = await User.findById(userID);
-
-    if (!user) {
-      return res.status(404).send("User not found !");
-    }
+    const user = req.user;
 
     res.send(user);
   } catch (err) {
-    res.status(400).send("Invalid ID format !");
+    res.status(400).send("ERROR : " + err.message);
   }
 });
 
-// DELETE API - deletes user by id from the database.
-app.delete("/user", async (req, res) => {
-  const userId = req.body.id;
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+  const user = req.user;
 
-  try {
-    const user = await User.findByIdAndDelete(userId);
+  // Sending a connection request..
+  console.log("Sending a connection request..");
 
-    if (!user) return res.status(404).send("User not found !");
-    else {
-      res.send("User deletion successfull.");
-    }
-  } catch (err) {
-    res.status(404).send("User not found !");
-  }
-});
-
-// PATCH API - updates the user data in the database.
-app.patch("/user/:_id", async (req, res) => {
-  const userId = req.params?._id;
-  const userData = req.body;
-  console.log(userData);
-
-  try {
-    const ALLOWED_UPDATES = [
-      "password",
-      "photoUrl",
-      "about",
-      "gender",
-      "age",
-      "skills",
-    ];
-
-    const isUpdateAllowed = Object.keys(userData).every((k) =>
-      ALLOWED_UPDATES.includes(k)
-    );
-
-    if (!isUpdateAllowed) throw new Error("Update not allowed");
-
-    if (userData?.skills?.length > 5)
-      throw new Error("There can only be 5 skills at max.");
-
-    const user = await User.findByIdAndUpdate(userId, userData, {
-      // options..
-      runValidators: true,
-    });
-    console.log(user);
-    res.send("User updated successfully.");
-  } catch (err) {
-    res.status(404).send("Update failed: " + err.message);
-  }
+  res.send(
+    user.firstName + " " + user.lastName + " sent you a friend request !"
+  );
 });
 
 connectDb()

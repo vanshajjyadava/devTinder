@@ -1,14 +1,28 @@
-const userAuth = (req, res, next) => {
-  console.log("Validating the user...");
-  const token = "user";
-  const isUserAuthorized = token === "user";
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
-  if (!isUserAuthorized) {
-    console.log("User validation failed.");
-    res.status(401).send("Used is not verified.");
-  } else {
-    console.log("User validation successful.");
+const userAuth = async (req, res, next) => {
+  try {
+    // Read the token from the req cookies..
+    const cookies = req.cookies;
+    const { token } = cookies; // const{token} = req.cookies
+
+    if (!token) throw new Error("Invalid token !");
+
+    // Validate the token..
+    const decodedObj = await jwt.verify(token, "DEV@Tinder$139");
+
+    const { _id } = decodedObj;
+
+    // Finding the user in the database..
+    const user = await User.findById(_id);
+
+    if (!user) throw new Error("User does not exist !");
+
+    req.user = user;
     next();
+  } catch (err) {
+    res.status(400).send("ERROR : " + err.message);
   }
 };
 
