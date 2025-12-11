@@ -13,7 +13,8 @@ authRouter.post("/signup", async (req, res, next) => {
     // Validation of data..
     validateSignUpData(req);
 
-    const { firstName, lastName, emailId, password, gender, age } = req.body;
+    const { firstName, lastName, emailId, password, gender, age, skills } =
+      req.body;
     // Encrypt the password
     const passwordHash = await bcrypt.hash(password, 10);
     // console.log(passwordHash);
@@ -26,6 +27,7 @@ authRouter.post("/signup", async (req, res, next) => {
       password: passwordHash,
       gender,
       age,
+      skills,
     });
 
     await user.save();
@@ -35,7 +37,7 @@ authRouter.post("/signup", async (req, res, next) => {
   }
 });
 
-// GET API - logs in the user.
+// POST API - logs in the user.
 authRouter.post("/login", async (req, res, next) => {
   try {
     const { emailId, password } = req.body;
@@ -57,6 +59,17 @@ authRouter.post("/login", async (req, res, next) => {
   } catch (err) {
     res.status(400).send("ERROR : " + err.message);
   }
+});
+
+// POST API - logs out the user.
+authRouter.post("/logout", async (req, res, next) => {
+  res
+    // res.cookie("",)
+    .cookie("token", null, {
+      expires: new Date(Date.now()),
+    })
+    // res.send("")
+    .send("User logged out successfully.");
 });
 
 module.exports = authRouter;
