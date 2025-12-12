@@ -41,4 +41,38 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res, next) => {
   }
 });
 
+// PATCH API - change password
+profileRouter.patch(
+  "/profile/changepassword",
+  userAuth,
+  async (req, res, next) => {
+    try {
+      const loggedInUser = req.user;
+      const { existingPassword, newPassword } = req.body;
+
+      // Validate existing password
+      const isPasswordValid = await loggedInUser.validatePassword(
+        existingPassword
+      );
+
+      if (!isPasswordValid) {
+        throw new Error("Existing password is not correct !");
+      }
+
+      // Hash the new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      loggedInUser.password = hashedNewPassword;
+
+      // Save user
+      await loggedInUser.save();
+
+      res.send("Password updated successfully!");
+    } catch (err) {
+      res.status(400).send("ERROR : " + err.message);
+    }
+  }
+);
+
 module.exports = profileRouter;
